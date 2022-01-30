@@ -7,17 +7,22 @@
 
 import Foundation
 import FirebaseDatabase
+import FirebaseAuth
 import UIKit
 
 final class DatabaseManager {
      
-     static let shared = DatabaseManager()
+     public static let shared = DatabaseManager()
      
      private let database = Database.database().reference()
-     
+     private let auth = FirebaseAuth.Auth.auth()
+     /**
+      데이터베이스 저장을 위한 이메일 특수문자 처리
+      
+      # Returns: a new email string
+      */
      static func safeEmail(emailAddress: String) -> String {
-          var safeEmail = emailAddress.replacingOccurrences(of: ".", with: "-")
-          safeEmail.replacingOccurrences(of: "@", with: "-")
+          var safeEmail = emailAddress.replacingOccurrences(of: ".", with: "-").replacingOccurrences(of: "@", with: "-")
           return safeEmail
      }
 }
@@ -25,6 +30,11 @@ final class DatabaseManager {
 // MARK: - Account Management
 extension DatabaseManager {
      
+     /**
+      유저 존재여부확인
+      - Parameter email: 회원가입시 기입한 email
+      - Parameter completion: 회원존재여부 확인결과
+      */
      public func userExists(with email: String,
                             completion: @escaping ((Bool) -> Void)) {
           var safeEmail = email.replacingOccurrences(of: ".", with: "-")
@@ -38,78 +48,129 @@ extension DatabaseManager {
           })
      }
      
-     /// Inserts new user to database
+     /**
+      데이터베이스에 유저 생성
+      - Parameter user: 새로운 user 데이터
+      - Parameter completion: DB입력 완료여부
+      */
      public func insertUser(with user: User, completion: @escaping (Bool) -> Void) {
-          database.child(user.safeEmail).setValue([
+          
+          /**
+           ```
+           safeEmail: {
                "username": user.username
-          ], withCompletionBlock: { error, _ in
+           }
+           ```
+           */
+          self.database.child(user.safeEmail).setValue([
+               "username": user.username
+          ], withCompletionBlock: { [weak self] error, _ in
+               guard let strongSelf = self else {
+                    completion(false)
+                    return
+               }
+               
                guard error == nil else {
                     print("데이터베이스 쓰기에 실패했습니다...")
                     completion(false)
                     return
                }
                
-               self.database.child("users").observeSingleEvent(of: .value, with: { snapshot in
+               guard let gender = user.gender?.rawValue else {
+                    print("사용자의 성별데이터가 존재하지않습니다.")
+                    completion(false)
+                    return
+               }
+               
+               /**
+                유저리스트 getAllUsers from Realtime Database
+                */
+               
+               strongSelf.database.child("users").observeSingleEvent(of: .value, with: { snapshot in
                     
-                    if var usersCollection = snapshot.value as? [[String: String]] {
+                    
+                    if var usersCollection: [[String: String]] = snapshot.value as? [[String: String]] {
                          
                          // user dictionary 추가
                          let newElement = [
                               "username": user.username,
-                              "email": user.safeEmail
-                              
+                              "email": user.safeEmail,
+                              "gender": gender,
+                              "birthDate": user.birthDateFormatter,
+                              "createdDate": user.createdDateFormatter,
+                              "modifiedDate": user.modifiedDateFormatter
                          ]
                          
                          usersCollection.append(newElement)
                          
-                         self.database.child("users").setValue(usersCollection, withCompletionBlock: { error, _ in
+                         strongSelf.database.child("users").setValue(usersCollection, withCompletionBlock: { error, _ in
                               guard error == nil else {
                                    completion(false)
                                    return
                               }
-                              
                               completion(true)
                          })
                     }
                     
                     else {
                          
-                         
-                         // 배열만들기
                          let newCollection: [[String: String]] = [
                               [
                                    "username": user.username,
-                                   "email": user.email
-                                   
+                                   "email": user.safeEmail,
+                                   "gender": gender,
+                                   "birthDate": user.birthDateFormatter,
+                                   "createdDate": user.createdDateFormatter,
+                                   "modifiedDate": user.modifiedDateFormatter
                               ]
                          ]
                          
-                         self.database.child("users").setValue(newCollection, withCompletionBlock: { error, _ in
+                         strongSelf.database.child("users").setValue(newCollection,
+                                                                     withCompletionBlock: { error, _ in
                               guard error == nil else {
                                    completion(false)
                                    return
                               }
-                              
                               completion(true)
-                              
                          })
                     }
                })
           })
      }
      
-     public func getAllUsers(completion: @escaping (Result<[[String: String]], Error>) -> Void) {
-          database.child("users").observeSingleEvent(of: .value, with: { snapshot in
-               guard let value = snapshot.value as? [[String: String]] else {
-                    completion(.failure(DatabaseError.failedToFetch))
+     /**
+      특정 이메일 가진 유저 가져오기
+      */
+     public func getUserWithEmail(with email: String, completion: @escaping (Result<String, Error>) -> Void) {
+          self.database.child("\(email)").observeSingleEvent(of: .value, with: { snapshot in
+               guard let value = snapshot.value as? String else {
+                    completion(.failure(DatabaseError.failedToGet))
                     return
                }
+               completion(.success(value))
           }) { error in
                print(error.localizedDescription)
           }
      }
-     
+
+     /**
+      모든유저값 가져오기
+      */
+     public func getAllUsers(completion: @escaping (Result<[[String: String]], Error>) -> Void) {
+          self.database.child("users").observeSingleEvent(of: .value, with: { snapshot in
+               guard let value = snapshot.value as? [[String: String]] else {
+                    completion(.failure(DatabaseError.failedToFetch))
+                    return
+               }
+               print(value)
+          }) { error in
+               print(error.localizedDescription)
+          }
+     }
+
      public enum DatabaseError: Error {
           case failedToFetch
+          case failedToGet
      }
+
 }

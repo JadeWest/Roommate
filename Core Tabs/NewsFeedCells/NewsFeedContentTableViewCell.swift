@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SDWebImage
 
 // 뉴스피드 컨텐츠(이미지, 링크, 텍스트 등)
 class NewsFeedContentTableViewCell: UITableViewCell {

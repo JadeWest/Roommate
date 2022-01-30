@@ -38,12 +38,12 @@ class EditProfileViewController: UIViewController {
         return field
     }()
     
-    private let emailField: BaseTextField = {
-        let field = BaseTextField(placeholder: "이메일",
-                                  isSecret: false)
-        field.isEnabled = false
-        return field
-    }()
+//    private let emailField: BaseTextField = {
+//        let field = BaseTextField(placeholder: "이메일",
+//                                  isSecret: false)
+//        field.isEnabled = false
+//        return field
+//    }()
     
     private let changePasswordButton: BaseButton = {
         let button = BaseButton(text: "비밀번호변경")
@@ -76,7 +76,7 @@ class EditProfileViewController: UIViewController {
         profilePhotoButton.layer.cornerRadius = profilePhotoButton.frame.height/2.0
         cameraButton.layer.cornerRadius = cameraButton.frame.height/2.0
         usernameField.layer.cornerRadius = usernameField.frame.height/2.0
-        emailField.layer.cornerRadius = emailField.frame.height/2.0
+//        emailField.layer.cornerRadius = emailField.frame.height/2.0
         changePasswordButton.layer.cornerRadius = changePasswordButton.frame.height/2.0
     }
 //    MARK: - Functions
@@ -84,7 +84,7 @@ class EditProfileViewController: UIViewController {
         view.addSubview(profilePhotoButton)
         view.addSubview(cameraButton)
         view.addSubview(usernameField)
-        view.addSubview(emailField)
+//        view.addSubview(emailField)
         view.addSubview(changePasswordButton)
     }
 //    MARK: - Objc Functions
@@ -125,15 +125,15 @@ class EditProfileViewController: UIViewController {
                                                    constant: -margin),
             usernameField.heightAnchor.constraint(equalToConstant: contentHeight),
             
-            emailField.topAnchor.constraint(equalTo: self.usernameField.bottomAnchor,
-                                            constant: 20),
-            emailField.leadingAnchor.constraint(equalTo: self.view.leadingAnchor,
-                                               constant: margin),
-            emailField.trailingAnchor.constraint(equalTo: self.view.trailingAnchor,
-                                                constant: -margin),
-            emailField.heightAnchor.constraint(equalToConstant: contentHeight),
+//            emailField.topAnchor.constraint(equalTo: self.usernameField.bottomAnchor,
+//                                            constant: 20),
+//            emailField.leadingAnchor.constraint(equalTo: self.view.leadingAnchor,
+//                                               constant: margin),
+//            emailField.trailingAnchor.constraint(equalTo: self.view.trailingAnchor,
+//                                                constant: -margin),
+//            emailField.heightAnchor.constraint(equalToConstant: contentHeight),
             
-            changePasswordButton.topAnchor.constraint(equalTo: self.emailField.bottomAnchor,
+            changePasswordButton.topAnchor.constraint(equalTo: self.usernameField.bottomAnchor,
                                                      constant: 60),
             changePasswordButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor,
                                                          constant: margin),

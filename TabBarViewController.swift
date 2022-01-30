@@ -8,6 +8,7 @@
 import UIKit
 import FirebaseAuth
 
+// TODO: Roommate, Message 추후 구현
 class TabBarViewController: UITabBarController {
 
 //    MARK: - Properties
@@ -19,20 +20,22 @@ class TabBarViewController: UITabBarController {
     let tabBarIconImages = ["megaphone", "person.3", "message", "person"]
     let tabBarIconSelectedImages = ["megaphone.fill", "person.3.fill", "message.fill", "person.fill"]
     
+    private let auth = Auth.auth()
 //    MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        let coreTabNavigations: [UINavigationController] = [newsFeedNav, roommateNav, messageNav, profileNav]
+        let coreTabNavigations: [UINavigationController] = [newsFeedNav, profileNav]
         self.tabBar.backgroundColor = .secondarySystemBackground
         self.tabBar.tintColor = UIColor(named: "IdColor")
         setViewControllers(coreTabNavigations, animated: false)
         setTabItemImages()
         setNavTitle()
-        
     }
     
 //    MARK: - functions
+    
+        
     private func setTabItemImages() {
         guard let items = self.tabBar.items else {
             return
@@ -46,8 +49,8 @@ class TabBarViewController: UITabBarController {
     
     private func setNavTitle() {
         newsFeedNav.title = "뉴스피드"
-        roommateNav.title = "룸메이트"
-        messageNav.title = "메세지"
+//        roommateNav.title = "룸메이트"
+//        messageNav.title = "메세지"
         profileNav.title = "프로필"
     }
     

@@ -21,23 +21,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         FirebaseApp.configure()
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
-        
-        let loginVC = LoginViewController()
-        if Auth.auth().currentUser == nil {
-            let navVC = UINavigationController(rootViewController: loginVC)
-            window.rootViewController = navVC
-            window.makeKeyAndVisible()
-            self.window = window
-            self.window?.makeKeyAndVisible()
-        } else {
-            let vc: UIViewController = TabBarViewController()
-            let navVC = UINavigationController(rootViewController: vc)
-            window.rootViewController = navVC
-            window.makeKeyAndVisible()
-            self.window = window
-            self.window?.makeKeyAndVisible()
-            
-        }
+        Auth.auth().languageCode = "kr"
+        let vc: UIViewController = TabBarViewController()
+        let navVC = UINavigationController(rootViewController: vc)
+        window.rootViewController = navVC
+        window.makeKeyAndVisible()
+        self.window = window
+        self.window?.makeKeyAndVisible()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

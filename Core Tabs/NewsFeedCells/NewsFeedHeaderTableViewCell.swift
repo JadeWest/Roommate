@@ -83,23 +83,25 @@ class NewsFeedHeaderTableViewCell: UITableViewCell {
     }
     
     private func setupLayout() {
-        let size = contentView.frame.height - 4
+        let itemHeight = contentView.frame.size.height - 4
         NSLayoutConstraint.activate([
             profilePhotoImage.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 2),
             profilePhotoImage.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 10),
-            profilePhotoImage.trailingAnchor.constraint(equalTo: self.usernameLabel.leadingAnchor, constant: -10),
+//            profilePhotoImage.trailingAnchor.constraint(equalTo: self.usernameLabel.leadingAnchor, constant: -10),
             profilePhotoImage.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -2),
-            profilePhotoImage.heightAnchor.constraint(equalToConstant: 50),
-            profilePhotoImage.widthAnchor.constraint(equalToConstant: 50),
+            profilePhotoImage.heightAnchor.constraint(equalToConstant: 66),
+            profilePhotoImage.widthAnchor.constraint(equalToConstant: 66),
             
             usernameLabel.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 2),
-            usernameLabel.leadingAnchor.constraint(equalTo: self.profilePhotoImage.trailingAnchor),
+            usernameLabel.leadingAnchor.constraint(equalTo: self.profilePhotoImage.trailingAnchor, constant: 10),
             usernameLabel.trailingAnchor.constraint(equalTo: self.moreButton.leadingAnchor, constant: -10),
-            usernameLabel.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: 2),
+            usernameLabel.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -2),
+            usernameLabel.heightAnchor.constraint(equalToConstant: 66),
             
             moreButton.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 2),
             moreButton.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -15),
-            moreButton.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: 2)
+            moreButton.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -2),
+            moreButton.heightAnchor.constraint(equalToConstant: 66),
         ])
     }
 }

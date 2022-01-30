@@ -17,7 +17,6 @@ struct NewsFeedRenderViewModel {
 class NewsFeedViewController: UIViewController {
 
     private var feedRenderViewModels = [NewsFeedRenderViewModel]()
-    private let currentUser = Auth.auth().currentUser
     //    MARK: - Properties
     private let newsTable: UITableView = {
         let table = UITableView()
@@ -35,11 +34,13 @@ class NewsFeedViewController: UIViewController {
         return table
     }()
     
+    private let auth = Auth.auth()
 //    MARK: - Life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(newsTable)
         view.backgroundColor = .systemBackground
+        checkAuthentication()
         newsTable.delegate = self
         newsTable.dataSource = self
 //        setupLayout()
@@ -55,6 +56,20 @@ class NewsFeedViewController: UIViewController {
         super.viewDidAppear(animated)
     }
     
+//    MARK: - Functions
+    
+    private func checkAuthentication() {
+        guard let currentUser = auth.currentUser else {
+            let loginVC = LoginViewController()
+            let nav = UINavigationController(rootViewController: loginVC)
+            nav.modalPresentationStyle = .fullScreen
+            self.present(nav, animated: false)
+            return
+        }
+    }
+
+    
+    // ViewModel로
     private func createMockModels() {
         let user = User(email: "John@gmail.com",
                         username: "John",
@@ -155,6 +170,7 @@ extension NewsFeedViewController: UITableViewDelegate, UITableViewDataSource {
         
         let idxSection = indexPath.section
         let model: NewsFeedRenderViewModel
+        
         if idxSection == 0 {
             model = feedRenderViewModels[0]
         }

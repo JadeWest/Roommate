@@ -7,12 +7,14 @@
 
 import UIKit
 import FirebaseAuth
+import FirebaseDatabase
 import JGProgressHUD
 
 class ProfileViewController: UIViewController {
 
 //    MARK: - Properties
     let auth = Auth.auth()
+    let db = Database.database().reference()
     let spinner = JGProgressHUD()
     
     private let profilePhoto: UIImageView = {
@@ -27,16 +29,20 @@ class ProfileViewController: UIViewController {
     private let emailLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "John@gmail.com"
+        label.text = ""
         label.textColor = UIColor.label
+        label.numberOfLines = 0
+        label.textAlignment = .center
         return label
     }()
     
     private let usernameLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "John"
+        label.text = ""
         label.textColor = UIColor.label
+        label.numberOfLines = 0
+        label.textAlignment = .center
         return label
     }()
     
@@ -68,10 +74,10 @@ class ProfileViewController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
         profilePhoto.layer.cornerRadius = profilePhoto.frame.height/2.0
         editProfileButton.layer.cornerRadius = editProfileButton.frame.height/2.0
         logoutButton.layer.cornerRadius = logoutButton.frame.height/2.0
+        initProfile()
     }
     
 //    MARK: - Functions
@@ -83,20 +89,41 @@ class ProfileViewController: UIViewController {
         view.addSubview(logoutButton)
     }
     
+//    TODO: safeEmail을 User의 safeEmail 연산변수로 바꿔줄것
     private func initProfile() {
-        guard let user = auth.currentUser as? User else {
-            return
+        auth.addStateDidChangeListener { [weak self] auth, user in
+            guard let currentUser = user else {
+                return
+            }
+            guard let email = currentUser.email else {
+                return
+            }
+            
+            guard let strongSelf = self else {
+                return
+            }
+            
+            let safeEmail = strongSelf.convertSafeEmail(email: email)
+            
+            strongSelf.db.child(safeEmail).child("username").getData { err, snapshot in
+                DispatchQueue.main.async {
+                    strongSelf.emailLabel.text = currentUser.email
+                    strongSelf.usernameLabel.text = snapshot.value as? String
+                }
+            }
         }
-        
-        self.emailLabel.text = user.email
-        self.usernameLabel.text = user.username
+    }
+    
+    private func convertSafeEmail(email: String) -> String {
+        var safeEmail = email.replacingOccurrences(of: ".", with: "-")
+        safeEmail = safeEmail.replacingOccurrences(of: "@", with: "-")
+        return safeEmail
     }
 //    MARK: - Objc functions
     @objc private func didTapEditProfileButton() {
         let editVC = EditProfileViewController()
         let nav = UINavigationController(rootViewController: editVC)
         nav.modalPresentationStyle = .fullScreen
-        
         self.present(nav, animated: true)
     }
     
@@ -112,15 +139,14 @@ class ProfileViewController: UIViewController {
             } catch let signOutError as NSError {
                 print("로그아웃에 실패했습니다\n Error Code:\(signOutError)")
             }
-            if strongSelf.auth.currentUser == nil {
-                let loginVC = LoginViewController()
-                let nav = UINavigationController(rootViewController: loginVC)
-                nav.modalPresentationStyle = .fullScreen
-                strongSelf.spinner.dismiss(animated: true)
-                strongSelf.present(nav, animated: true) {
-                    strongSelf.navigationController?.popToRootViewController(animated: false)
-                    strongSelf.tabBarController?.selectedIndex = 0
-                }
+            
+            let loginVC = LoginViewController()
+            let nav = UINavigationController(rootViewController: loginVC)
+            nav.modalPresentationStyle = .fullScreen
+            strongSelf.spinner.dismiss(animated: true)
+            strongSelf.present(nav, animated: true) {
+                strongSelf.navigationController?.popToRootViewController(animated: false)
+                strongSelf.tabBarController?.selectedIndex = 0
             }
         }))
         alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: nil))
@@ -138,12 +164,14 @@ class ProfileViewController: UIViewController {
             profilePhoto.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             profilePhoto.heightAnchor.constraint(equalToConstant: profileButtonSize),
             profilePhoto.widthAnchor.constraint(equalToConstant: profileButtonSize),
+
+            usernameLabel.topAnchor.constraint(equalTo: self.profilePhoto.bottomAnchor),
+            usernameLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 30),
+            usernameLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -30),
             
             emailLabel.topAnchor.constraint(equalTo: self.usernameLabel.bottomAnchor, constant: 5),
-            emailLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            
-            usernameLabel.topAnchor.constraint(equalTo: self.profilePhoto.bottomAnchor),
-            usernameLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            emailLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 30),
+            emailLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -30),
             
             editProfileButton.topAnchor.constraint(equalTo: self.usernameLabel.bottomAnchor, constant: 100),
             editProfileButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: margin),
