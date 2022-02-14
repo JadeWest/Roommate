@@ -211,9 +211,25 @@ class RegistrationViewController: UIViewController {
      
      - Returns: 원본이미지의 사이즈를 변경한 `newImage`
      */
+    private func downSample(imageURL: URL, size: CGSize, scale: CGFloat = UIScreen.main.scale) -> UIImage {
+        
+        let imageSourceOption = [kCGImageSourceShouldCache: false] as CFDictionary
+//        let data = image.pngData()! as CFData
+        let imageSource = CGImageSourceCreateWithURL(imageURL as CFURL, imageSourceOption)!
+        let maxPixel = max(size.width, size.height) * scale
+        let downSampleOptions = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixel ] as CFDictionary
+        let downSampledImage = CGImageSourceCreateThumbnailAtIndex(imageSource, 0, downSampleOptions)!
+        let newImage = UIImage(cgImage: downSampledImage)
+        
+        return newImage
+        
+    }
     
-    
-//    MARK: - Objc functions
+    //    MARK: - Objc functions
     
     
     /**
@@ -308,7 +324,7 @@ class RegistrationViewController: UIViewController {
             }
             
             DispatchQueue.main.async {
-                strongSelf.spinner.dismiss(animated: true)
+                strongSelf.spinner.dismiss(animated: true) 
             }
             
             FirebaseAuth.Auth.auth().createUser(
@@ -376,15 +392,44 @@ class RegistrationViewController: UIViewController {
                                 
                                 switch result {
                                 case .success(let url):
-                                    print(url)
-                                    // TODO: - profile 이미지, newsfeed용 프로필이미지 저장
+                                    print("!!!!!!!!!!!! success !!!!!!!!!!!!")
+                                    guard let resource = URL(string: url) else {
+                                        return
+                                    }
+                                    let profileViewImageCompression = strongSelf.downSample(imageURL: resource, size: CGSize(width: 150, height: 150))
+                                    let newsfeedProfileViewImageCompression = strongSelf.downSample(imageURL: resource, size: CGSize(width: 66, height: 66))
+                                    let compressedProfilePictureFilename = newUser.compressedProfilePictureURL
+                                    let compressedNewsfeedProfilePictureFilename = newUser.compressedNewsfeedProfilePictureURL
+                                    // TODO: - profile 이미지 (size: 150X150), newsfeed용 프로필이미지 저장(size: 66)
                                     
+                                    guard let profileViewImageData = profileViewImageCompression.pngData(),
+                                          let newsfeedProfileViewImageData = newsfeedProfileViewImageCompression.pngData() else {
+                                        return
+                                    }
+                                    
+                                    StorageManager.shared.uploadProfilePicture(data: profileViewImageData, fileName: compressedProfilePictureFilename) { result in
+                                        switch result {
+                                        case .success(let url):
+                                            print("@150X150 compression image upload success!")
+                                            print(url)
+                                        case .failure(let error):
+                                            print(error)
+                                        }
+                                    }
+                                    
+                                    StorageManager.shared.uploadProfilePicture(data: newsfeedProfileViewImageData, fileName: compressedNewsfeedProfilePictureFilename) { result in
+                                        switch result {
+                                        case .success(let url):
+                                            print("@66X66 compression image upload success!")
+                                            print(url)
+                                        case .failure(let error):
+                                            print(error)
+                                        }
+                                    }
                                 case .failure(let error):
                                     print(error)
                                 }
                             }
-                            
-                            
                         } else {
                             print("회원가입 실패")
                             return

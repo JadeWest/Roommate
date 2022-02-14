@@ -60,6 +60,20 @@ struct User {
         return "\(currentUser.uid)_profile_picture.png"
     }
     
+    var compressedProfilePictureURL: String {
+        guard let currentUser = Auth.auth().currentUser else {
+            return ""
+        }
+        return "\(currentUser.uid)_profile_picture@150X150.png"
+    }
+    
+    var compressedNewsfeedProfilePictureURL: String {
+        guard let currentUser = Auth.auth().currentUser else {
+            return ""
+        }
+        return "\(currentUser.uid)_profile_picture@66X66.png"
+    }
+    
     var birthDateFormatter: String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
